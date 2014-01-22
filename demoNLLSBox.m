@@ -17,7 +17,7 @@ y = NLLSTest1DCurve(x, a_gt) + randn(nData, 1) * noiseStd;
 
 % Find the optimal parameters by nonlinear least squares.
 fcn = @(a)NLLSCurveToCost(a, @NLLSTest1DCurve, x, y);
-options = struct('Display', 'off');
+options = struct('Display', 'off', 'DerivativeCheck', 'on');
 a_lsqnonlin = lsqnonlin(fcn, a0, [], [], options);
 a_ours = NonlinearLeastSquares(fcn, a0, [], [], options);
 

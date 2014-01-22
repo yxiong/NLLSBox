@@ -1,3 +1,6 @@
+Jan 22, 2014 (v0.1.1) ---
+  Minor update for robustness.
+
 Jan 20, 2014 (v0.1) ---
   Infrastructure and documentation.
   Levenberg-Marquardt algorithm.
