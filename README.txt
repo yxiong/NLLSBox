@@ -29,4 +29,10 @@ which is a matrix of dimension MxN.
 
 All vectors are column vectors unless otherwise stated.
 
+================================================================
+Features.
+================================================================
+* Same interface but better than 'lsqnonlin'.
+* Levenberg-Marquardt algorithm.
+
 See 'NonlinearLeastSquares.pdf' for a more detailed documentation.
