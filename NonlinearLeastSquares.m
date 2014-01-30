@@ -16,9 +16,8 @@ function [x, F, f, exitflag] = NonlinearLeastSquares(fcn, x0, lb, ub, options)
 %        'J' a MxN matrix for the Jacobian matrix.
 %        [TODO] Currently the Jacobian has to be provided by users.
 %   x0:  initial guess, Nx1 vector.
-%   lb, ub: the lower and upper bound of the variable 'x'.
-%           [TODO] Currently these two parameters are not supported and has
-%           to be set to [].
+%   lb, ub: the lower and upper bound of the variable 'x'. Can be [] or 'Inf'
+%           if not bound needs to be enforced.
 %   options: a struct with following supported fields.
 %     'DerivativeCheck': compare the user-supplied derivatives with to
 %                finite-differencing ones, options {'off'} or 'on'. The gradient
@@ -52,29 +51,38 @@ function [x, F, f, exitflag] = NonlinearLeastSquares(fcn, x0, lb, ub, options)
 %   Created: Jan 20, 2014.
 
 %% Check input and setup parameters.
-% [TODO]: Check whether 'lb' and 'ub' are set to [].
-if (exist('lb', 'var') && ~isempty(lb))
-  error('Parameter ''lb'' currently not supported.');
-end
-if (exist('ub', 'var') && ~isempty(ub))
-  error('Parameter ''ub'' currently not supported.');
-end
-% Create empty 'options' if not provided.
-if (~exist('options', 'var'))
-  options = [];
-end
+if (~exist('lb', 'var'))        lb = [];        end
+if (~exist('ub', 'var'))        ub = [];        end
+if (~exist('options', 'var'))   options = [];   end
 % Get options from the struct.
 [DerivativeCheck, Display, MaxIter, TolFun, TolX] = GetOptions(options);
 [tau, JJDamp] = GetLMOptions(options);
 
+%% Remove the bounded constraint.
+N = length(x0);
+if ((~isempty(lb) && any(isfinite(lb))) || ...
+    (~isempty(ub) && any(isfinite(ub))))
+  BoundedConstraint = 1;
+  if (isempty(lb))    lb = -Inf(N,1);   end
+  if (isempty(ub))    ub =  Inf(N,1);   end
+  lb = lb(:);
+  ub = ub(:);
+  assert(all(lb<=x0) && all(x0<=ub));
+  fcn = BoundedFcnToUnconstrainedFcn(fcn, lb, ub);
+  mapfcn = MapBoundedToUnconstrained(lb, ub);
+  x0 = mapfcn(x0);
+else
+  BoundedConstraint = 0;
+end
+
 %% Initialization.
 x = x0;
-N = length(x);
 [f, J] = fcn(x);
 F = sum(f.^2);
 JJ = J' * J;
 Jf = J' * f;
 mu = tau * max(diag(JJ));
+mu_min = 1e-12;
 nu = 2;
 iter = 0;
 
@@ -113,7 +121,7 @@ for iter = 1:MaxIter
     J = J_new;
     JJ = J' * J;
     Jf = J' * f;
-    mu = mu * max(1/3, 1-(2*rho-1)^3);
+    mu = max(mu_min, mu * max(1/3, 1-(2*rho-1)^3));
     nu = 2;
   else
     % Step not accepted.
@@ -130,6 +138,11 @@ for iter = 1:MaxIter
   % Check the stop criterion.
   exitflag = StopCriterion(rho_denom, rho, x_old, x, TolX, f_old, f, TolFun);
   if (exitflag)    break;    end
+end
+
+if (BoundedConstraint)
+  mapfcn = MapUnconstrainedToBounded(lb, ub);
+  x = mapfcn(x);
 end
 
 if (Display >= 1)
