@@ -34,4 +34,10 @@ a = NonlinearLeastSquares(fcn, a0, ...
                           [ Inf,    0,    3,  Inf], options);
 CheckNear(a, a_gt, 0.01);
 
+% Use finite difference to compute Jacobian.
+fcn = @(a)NLLSCurveToCost(a, @NLLSTest1DCurveNoJacobian, x, y);
+options = struct('Display', 'off', 'Jacobian', 'off');
+a = NonlinearLeastSquares(fcn, a0, [], [], options);
+assert(CheckNear(a, a_gt, 0.01) || CheckNear(a, a_gt2, 0.01));
+
 fprintf('Passed.\n');

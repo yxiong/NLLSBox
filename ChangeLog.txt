@@ -1,3 +1,6 @@
+Feb 05, 2014 (v0.2.1) ---
+  Support using finite difference to compute Jacobian matrix.
+
 Jan 30, 2014 (v0.2) ---
   Support bounded constraints.
 

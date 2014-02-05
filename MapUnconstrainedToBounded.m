@@ -19,23 +19,21 @@ N = length(lb);
 lb_finite = isfinite(lb);
 ub_finite = isfinite(ub);
 
-idx0 = find(~lb_finite & ~ub_finite);
 idx1 = find(~lb_finite &  ub_finite);
 idx2 = find( lb_finite & ~ub_finite);
 idx3 = find( lb_finite &  ub_finite);
 
 assert(all(lb(idx3) < ub(idx3)));
 
-fcn = @(y)MapUnconstrainedToBoundedSub(y, lb, ub, idx0, idx1, idx2, idx3);
+fcn = @(y)MapUnconstrainedToBoundedSub(y, lb, ub, idx1, idx2, idx3);
 
 end
 
-function [x,dx] = MapUnconstrainedToBoundedSub(y, l, u, idx0, idx1, idx2, idx3)
+function [x,dx] = MapUnconstrainedToBoundedSub(y, l, u, idx1, idx2, idx3)
 
 N = length(l);
-x = zeros(N, 1);
 
-x(idx0) = y(idx0);
+x = y;
 
 xtmp1 = sqrt(y(idx1).^2 + 1);
 x(idx1) = u(idx1) + 1 - xtmp1;
@@ -48,8 +46,7 @@ xtmp3 = 2 * y(idx3) ./ d3;
 x(idx3) = (l(idx3)+u(idx3))/2 + d3/2 .* sin(xtmp3);
 
 if (nargout > 1)
-  dx = zeros(N, 1);
-  dx(idx0) = 1;
+  dx = ones(N, 1);
   dx(idx1) = -y(idx1) ./ xtmp1;
   dx(idx2) =  y(idx2) ./ xtmp2;
   dx(idx3) = cos(xtmp3);

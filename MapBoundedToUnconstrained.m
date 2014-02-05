@@ -16,23 +16,20 @@ N = length(lb);
 lb_finite = isfinite(lb);
 ub_finite = isfinite(ub);
 
-idx0 = find(~lb_finite & ~ub_finite);
 idx1 = find(~lb_finite &  ub_finite);
 idx2 = find( lb_finite & ~ub_finite);
 idx3 = find( lb_finite &  ub_finite);
 
 assert(all(lb(idx3) < ub(idx3)));
 
-fcn = @(x)MapBoundedToUnconstrainedSub(x, lb, ub, idx0, idx1, idx2, idx3);
+fcn = @(x)MapBoundedToUnconstrainedSub(x, lb, ub, idx1, idx2, idx3);
 
 end
 
-function y = MapBoundedToUnconstrainedSub(x, l, u, idx0, idx1, idx2, idx3)
+function y = MapBoundedToUnconstrainedSub(x, l, u, idx1, idx2, idx3)
 
 N = length(l);
-y = zeros(N, 1);
-
-y(idx0) = x(idx0);
+y = x;
 
 y(idx1) = real(sqrt((u(idx1)+1-x(idx1)).^2 - 1));
 
